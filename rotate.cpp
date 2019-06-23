@@ -6,10 +6,19 @@ using namespace cv;
 
 Mat rotateTest(Mat src, double angle)
 {
-	Mat rotateImg;
 	Point2f center(src.cols / 2.0, src.rows / 2.0);
-	Mat rotateMatric = getRotationMatrix2D(center, angle, 0.5);
-	warpAffine(src, rotateImg, rotateMatric, Size(src.cols, src.rows));
+	Mat rotateMatric = getRotationMatrix2D(center, angle, 1.0);
+
+	// determine bounding rectangle, center not relevant
+	Rect2f bbox = RotatedRect(Point2f(), src.size(), angle).boundingRect2f();
+	// adjust transformation matrix
+	rotateMatric.at<double>(0, 2) += bbox.width / 2.0 - src.cols / 2.0;
+	rotateMatric.at<double>(1, 2) += bbox.height / 2.0 - src.rows / 2.0;
+
+	Mat rotateImg;
+	//Mat rotateImg(Size(src.size().height, src.size().width), src.type());
+	//warpAffine(src, rotateImg, rotateMatric, src.size());
+	warpAffine(src, rotateImg, rotateMatric, bbox.size());
 	return rotateImg;
 }
 
